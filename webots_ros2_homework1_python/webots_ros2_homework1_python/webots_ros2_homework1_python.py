@@ -10,9 +10,6 @@ from nav_msgs.msg import Odometry
 from rclpy.qos import ReliabilityPolicy, QoSProfile
 import math
 import time
-import tf_transformations
-
-
 
 
 LINEAR_VEL = 0.22
@@ -59,10 +56,12 @@ class RandomWalk(Node):
         self.start_y = 0.0
 
 
-    def quaternion_to_yaw(orientation):
-        quaternion = [orientation.x, orientation.y, orientation.z, orientation.w]
-        euler = tf_transformations.euler_from_quaternion(quaternion)
-        return euler[2]  # Yaw
+    def quaternion_to_yaw(q):
+        # Quaternion to Euler angles (yaw)
+        siny_cosp = 2 * (q.w * q.z + q.x * q.y)
+        cosy_cosp = 1 - 2 * (q.y * q.y + q.z * q.z)
+        yaw = math.atan2(siny_cosp, cosy_cosp)
+        return yaw
 
         
     def turn_x_deg(self, x):
