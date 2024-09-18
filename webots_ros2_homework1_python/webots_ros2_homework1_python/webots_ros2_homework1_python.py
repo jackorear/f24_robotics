@@ -10,6 +10,8 @@ from nav_msgs.msg import Odometry
 from rclpy.qos import ReliabilityPolicy, QoSProfile
 import math
 import time
+import tf_transformations
+
 
 
 
@@ -55,6 +57,13 @@ class RandomWalk(Node):
         self.orientation = 0.0
         self.start_x = 0.0
         self.start_y = 0.0
+
+
+    def quaternion_to_yaw(orientation):
+        quaternion = [orientation.x, orientation.y, orientation.z, orientation.w]
+        euler = tf_transformations.euler_from_quaternion(quaternion)
+        return euler[2]  # Yaw
+
         
     def turn_x_deg(self, x):
         if self.current_orientation == None:
@@ -66,7 +75,7 @@ class RandomWalk(Node):
         self.publisher_.publish(self.cmd)
         self.get_logger().info('Step 1')
         self.turtlebot_moving = True
-        while (abs(self.current_orientation - start - x)) > 0.01:
+        while (abs(self.current_orientation - start - math.radians(x))) > 0.01:
             continue
         self.cmd.angular.z = 0.0
         self.publisher_.publish(self.cmd)
@@ -128,7 +137,7 @@ class RandomWalk(Node):
         orientation = msg2.pose.pose.orientation
         (posx, posy, posz) = (position.x, position.y, position.z)
         self.current_position = (position.x, position.y)
-        self.orientation = orientation.z
+        self.orientation = quaternion_to_yaw(orientation)
         (qx, qy, qz, qw) = (orientation.x, orientation.y, orientation.z, orientation.w)
         self.get_logger().info('self position: {},{},{}'.format(posx,posy,posz));
         # similarly for twist message if you need
