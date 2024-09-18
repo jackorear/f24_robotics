@@ -56,7 +56,7 @@ class RandomWalk(Node):
         self.start_y = 0.0
 
 
-    def quaternion_to_yaw(q):
+    def quaternion_to_yaw(self, q):
         # Quaternion to Euler angles (yaw)
         siny_cosp = 2 * (q.w * q.z + q.x * q.y)
         cosy_cosp = 1 - 2 * (q.y * q.y + q.z * q.z)
@@ -136,7 +136,7 @@ class RandomWalk(Node):
         orientation = msg2.pose.pose.orientation
         (posx, posy, posz) = (position.x, position.y, position.z)
         self.current_position = (position.x, position.y)
-        self.orientation = quaternion_to_yaw(orientation)
+        self.orientation = self.quaternion_to_yaw(orientation)
         (qx, qy, qz, qw) = (orientation.x, orientation.y, orientation.z, orientation.w)
         self.get_logger().info('self position: {},{},{}'.format(posx,posy,posz));
         # similarly for twist message if you need
