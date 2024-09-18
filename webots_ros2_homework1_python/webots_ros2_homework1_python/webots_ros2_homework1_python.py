@@ -50,7 +50,11 @@ class RandomWalk(Node):
         self.pose_saved=''
         self.cmd = Twist()
         self.timer = self.create_timer(timer_period, self.timer_callback)
-
+        self.current_position = None
+        self.orientation = 0
+        self.start_x = 0
+        self.start_y = 0
+        
     def turn_x_deg(self, x):
         self.cmd.linear.x = 0
         self.cmd.angular.z = ANGULAR_VEL
@@ -59,11 +63,15 @@ class RandomWalk(Node):
         time.sleep(math.radians(x) / ANGULAR_VEL)
         self.cmd.angular.z = 0
         self.publisher_.publish(self.cmd)
-        self.turtlebot_moveing = False
+        self.turtlebot_moving = False
 
     def move_x_dist(self, x):
         if x > MAX_MOVE_DIST:
             x = MAX_MOVE_DIST
+        elif x < STOP_DISTANCE:
+            x = 0
+        else:
+            x = x - STOP_DISTANCE
         self.cmd.linear.x = LINEAR_VEL
         self.cmd.angular.z = 0
         self.publisher_.publish(self.cmd)
@@ -73,6 +81,22 @@ class RandomWalk(Node):
         self.publisher_.publish(self.cmd)
         self.turtlebot_moving = False
 
+    def dist_from_start(self, pos):
+        (x,y) = pos
+        dx = x - self.start_x
+        dy = y - self.start_y
+        return math.sqrt(dx**2 + dy**2)
+
+    def get_proj_pos(self, dir, dist):
+        if self.current_position == None:
+            return 0,0
+        curr_x, curr_y = self.current_position
+        #current heading is self.orientation
+        theta = self.orientation + math.radians(dir)
+        proj_x = curr_x + math.cos(theta) * dist
+        proj_y = curr_y + math.sin(theta) * dist
+        proj_pos = proj_x, proj_y
+        return proj_pos
         
     def listener_callback1(self, msg1):
         #self.get_logger().info('scan: "%s"' % msg1.ranges)
@@ -95,6 +119,8 @@ class RandomWalk(Node):
         position = msg2.pose.pose.position
         orientation = msg2.pose.pose.orientation
         (posx, posy, posz) = (position.x, position.y, position.z)
+        self.current_position = (position.x, position.y)
+        self.orientation = orientation.z
         (qx, qy, qz, qw) = (orientation.x, orientation.y, orientation.z, orientation.w)
         self.get_logger().info('self position: {},{},{}'.format(posx,posy,posz));
         # similarly for twist message if you need
@@ -126,27 +152,23 @@ class RandomWalk(Node):
         #self.get_logger().info('left scan slice: "%s"'%  min(left_lidar_samples))
         #self.get_logger().info('front scan slice: "%s"'%  min(front_lidar_samples))
         #self.get_logger().info('right scan slice: "%s"'%  min(right_lidar_samples))
-
-        if front_lidar_min < SAFE_STOP_DISTANCE:
-            if self.turtlebot_moving == True:
-                self.cmd.linear.x = 0.0 
-                self.cmd.angular.z = 0.0 
-                self.publisher_.publish(self.cmd)
-                self.turtlebot_moving = False
-                self.get_logger().info('Stopping')
-                return
-        elif front_lidar_min < LIDAR_AVOID_DISTANCE:
-                self.cmd.linear.x = 0.07 
-                if (right_lidar_min > left_lidar_min):
-                   self.cmd.angular.z = -0.3
-                else:
-                   self.cmd.angular.z = 0.3
-                self.publisher_.publish(self.cmd)
-                self.get_logger().info('Turning')
-                self.turtlebot_moving = True
-        else:
-            self.turn_x_deg(15)
-            self.move_x_dist(1)
+        best_dir = 0
+        best_dist = 0
+        best_tot_dist = 0
+        for dir in range(len(self.scan_cleaned)):
+            dist = self.scan_cleaned[dir]
+            projected_pos = self.get_proj_pos(dir, self.scan_cleaned[dir])
+            projected_tot_dist = self.dist_from_start(projected_pos)
+            if projected_tot_dist > best_tot_dist:
+                best_dir = dir
+                best_dist = dist
+                best_tot_dist = projected_tot_dist
+        self.get_logger().info('Call to turn %f deg' % best_dir)
+        self.turn_x_deg(best_dir)
+        self.get_logger().info('Call to move %f m' % best_dist)
+        self.move_x_dist(best_dist)
+            
+            
             
             
 
