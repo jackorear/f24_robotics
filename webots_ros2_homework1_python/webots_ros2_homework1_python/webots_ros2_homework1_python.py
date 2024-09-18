@@ -63,11 +63,11 @@ class RandomWalk(Node):
         return yaw
 
         
-   def normalize_angle(angle):
-    """Normalize the angle to be within [-pi, pi]"""
-    return math.atan2(math.sin(angle), math.cos(angle))
+    def normalize_angle(angle):
+        """Normalize the angle to be within [-pi, pi]"""
+        return math.atan2(math.sin(angle), math.cos(angle))
    
-   def turn_x_deg(self, x):
+    def turn_x_deg(self, x):
         if self.current_orientation is None:
             self.get_logger().info('turn_x_deg called but self.current_orientation is None')
             return
