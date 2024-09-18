@@ -59,10 +59,12 @@ class RandomWalk(Node):
         self.cmd.linear.x = 0.0
         self.cmd.angular.z = ANGULAR_VEL
         self.publisher_.publish(self.cmd)
+        self.get_logger().info('Step 1')
         self.turtlebot_moving = True
         time.sleep(math.radians(x) / ANGULAR_VEL)
         self.cmd.angular.z = 0.0
         self.publisher_.publish(self.cmd)
+        self.get_logger().info('Step 2')
         self.turtlebot_moving = False
 
     def move_x_dist(self, x):
