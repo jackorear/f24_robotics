@@ -50,7 +50,6 @@ class RandomWalk(Node):
         self.cmd = Twist()
         self.timer = self.create_timer(timer_period, self.timer_callback)
         self.current_position = None
-        self.current_orientation = None
         self.orientation = 0.0
         self.start_x = 0.0
         self.start_y = 0.0
@@ -65,10 +64,10 @@ class RandomWalk(Node):
 
         
     def turn_x_deg(self, x):
-        if self.current_orientation == None:
+        if self.orientation == None:
             self.get_logger().info('turn_x_deg called but self.current_orientation == None')
             return
-        start = self.current_orientation
+        start = self.orientation
         self.cmd.linear.x = 0.0
         self.cmd.angular.z = ANGULAR_VEL
         self.publisher_.publish(self.cmd)
