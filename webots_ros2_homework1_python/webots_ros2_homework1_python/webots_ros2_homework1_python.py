@@ -173,7 +173,7 @@ class RandomWalk(Node):
         self.orientation = self.quaternion_to_yaw(orientation)
         (qx, qy, qz, qw) = (orientation.x, orientation.y, orientation.z, orientation.w)
         self.get_logger().info('self position: {},{},{}'.format(posx,posy,posz))
-        self.get_logger().info('self orientation: {}'.format(self.orientation)
+        self.get_logger().info('self orientation: {}'.format(self.orientation))
         # similarly for twist message if you need
         self.pose_saved=position
         
