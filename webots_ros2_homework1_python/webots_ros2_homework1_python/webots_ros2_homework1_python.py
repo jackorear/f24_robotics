@@ -85,15 +85,29 @@ class RandomWalk(Node):
         self.cmd.linear.x = 0.0
         self.cmd.angular.z = ANGULAR_VEL
         self.publisher_.publish(self.cmd)
-        
-        self.get_logger().info('Start turning...')
+    
+        self.get_logger().info(f'Start turning... from {start_orientation:.2f} rad to {target_orientation:.2f} rad')
+    
+        # Timeout safety mechanism in case something goes wrong
+        max_turn_duration = abs(target_angle) / ANGULAR_VEL + 2.0  # Adding buffer time
+        start_time = time.time()
     
         # Keep turning until the robot reaches the target angle
-        while abs(self.normalize_angle(self.orientation - target_orientation)) > 0.05:  # Small tolerance for precision
+        while abs(self.normalize_angle(self.orientation - target_orientation)) > 0.05:
+            current_time = time.time()
+    
+            # Log orientation in each loop iteration
+            self.get_logger().info(f'Current orientation: {self.orientation:.2f} rad, Target: {target_orientation:.2f} rad, Remaining: {abs(self.normalize_angle(self.orientation - target_orientation)):.2f} rad')
+    
             rclpy.spin_once(self)  # Update the current orientation
             self.publisher_.publish(self.cmd)  # Keep publishing the turn command
     
-        # Stop the robot once the target orientation is reached
+            # Safety check to prevent infinite loop
+            if current_time - start_time > max_turn_duration:
+                self.get_logger().warn('Turning took too long, breaking out of the loop.')
+                break
+    
+        # Stop the robot once the target orientation is reached or timeout occurs
         self.cmd.angular.z = 0.0
         self.publisher_.publish(self.cmd)
         self.get_logger().info('Turn complete')
