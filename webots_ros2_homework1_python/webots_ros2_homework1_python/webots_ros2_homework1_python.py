@@ -89,7 +89,7 @@ class RandomWalk(Node):
         self.get_logger().info('Start turning...')
     
         # Keep turning until the robot reaches the target angle
-        while abs(normalize_angle(self.orientation - target_orientation)) > 0.05:  # Small tolerance for precision
+        while abs(self.normalize_angle(self.orientation - target_orientation)) > 0.05:  # Small tolerance for precision
             rclpy.spin_once(self)  # Update the current orientation
             self.publisher_.publish(self.cmd)  # Keep publishing the turn command
     
