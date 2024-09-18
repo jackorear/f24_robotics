@@ -76,7 +76,7 @@ class RandomWalk(Node):
         # Destroy the timer once it's no longer needed
         self.turn_timer.cancel()
 
-       def move_x_dist(self, x):
+    def move_x_dist(self, x):
         if x > MAX_MOVE_DIST:
             x = MAX_MOVE_DIST
         elif x < STOP_DISTANCE:
