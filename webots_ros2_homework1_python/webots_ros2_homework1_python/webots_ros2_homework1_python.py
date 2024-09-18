@@ -69,7 +69,7 @@ class RandomWalk(Node):
    
     def turn_x_deg(self, x):
         x = math.radians(x)
-        if self.current_orientation == 'None':
+        if self.orientation == 'None':
             self.get_info().logger('Turn x deg called with None for self.current_orientation')
             return
         turn_duration = (x / ANGULAR_VEL)
