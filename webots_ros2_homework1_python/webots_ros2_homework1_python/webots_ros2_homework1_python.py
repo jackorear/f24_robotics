@@ -82,9 +82,6 @@ class RandomWalk(Node):
         self.publisher_.publish(self.cmd)
         return
         
-                                   
-
-
     def move_x_dist(self, x):
         if x > MAX_MOVE_DIST:
             x = MAX_MOVE_DIST
@@ -146,6 +143,12 @@ class RandomWalk(Node):
         self.get_logger().info('self orientation: {}'.format(self.orientation))
         # similarly for twist message if you need
         self.pose_saved=position
+
+         # Store the initial position when first Odometry message is received
+        if self.start_x == 0.0 and self.start_y == 0.0:
+            self.start_x = posx
+            self.start_y = posy
+            self.get_logger().info('Initial Position: {},{}'.format(self.start_x, self.start_y))
         
         #Example of how to identify a stall..need better tuned position deltas; wheels spin and example fast
         #diffX = math.fabs(self.pose_saved.x- position.x)
