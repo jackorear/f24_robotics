@@ -67,53 +67,22 @@ class RandomWalk(Node):
         """Normalize the angle to be within [-pi, pi]"""
         return math.atan2(math.sin(angle), math.cos(angle))
    
-    def turn_x_deg(self, x):
-        if self.orientation is None:
-            self.get_logger().info('turn_x_deg called but self.orientation is None')
+    def turn_x_deg(self, x)
+        x = math.radians(x)
+        if self.current_orientation == 'None':
+            self.get_info().logger('Turn x deg called with None for self.current_orientation')
             return
-    
-        # Convert degrees to radians
-        target_angle = math.radians(x)
-        
-        # Get the starting orientation
-        start_orientation = self.orientation
-    
-        # Compute the target orientation (where we want to end up)
-        target_orientation = self.normalize_angle(start_orientation + target_angle)
-    
-        # Set the angular velocity to start turning
-        self.cmd.linear.x = 0.0
+        turn_duration = (x / ANGULAR_VEL)
         self.cmd.angular.z = ANGULAR_VEL
+        self.cmd.linear.x = 0.0
         self.publisher_.publish(self.cmd)
-    
-        self.get_logger().info(f'Start turning... from {start_orientation:.2f} rad to {target_orientation:.2f} rad')
-    
-        # Timeout safety mechanism in case something goes wrong
-        max_turn_duration = abs(target_angle) / ANGULAR_VEL + 2.0  # Adding buffer time
-        start_time = time.time()
-    
-        # Keep turning until the robot reaches the target angle
-        while abs(self.normalize_angle(self.orientation - target_orientation)) > 0.05:
-            current_time = time.time()
-    
-            # Log orientation in each loop iteration
-            self.get_logger().info(f'Current orientation: {self.orientation:.2f} rad, Target: {target_orientation:.2f} rad, Remaining: {abs(self.normalize_angle(self.orientation - target_orientation)):.2f} rad')
-    
-            rclpy.spin_once(self)  # Update the current orientation
-            self.get_logger().info('Passed spin_once')
-            self.publisher_.publish(self.cmd)  # Keep publishing the turn command
-    
-            # Safety check to prevent infinite loop
-            if current_time - start_time > max_turn_duration:
-                self.get_logger().warn('Turning took too long, breaking out of the loop.')
-                break
-    
-        # Stop the robot once the target orientation is reached or timeout occurs
-        self.cmd.angular.z = 0.0
+        self.get_info().logger('Turn x deg called for %f duration (s) at %f rate (m/s)', turn_duration, ANGULAR_VEL)
+        timer.sleep(turn_duration)
+        self.cmd.angular.z = 0
         self.publisher_.publish(self.cmd)
-        self.get_logger().info('Turn complete')
-    
-        self.turtlebot_moving = False
+        return
+        
+                                   
 
 
     def move_x_dist(self, x):
