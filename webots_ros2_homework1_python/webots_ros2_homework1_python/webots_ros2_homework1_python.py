@@ -63,7 +63,7 @@ class RandomWalk(Node):
         self.publisher_.publish(self.cmd)
         self.get_logger().info('Step 1')
         self.turtlebot_moving = True
-        while (math.abs(self.current_orientation - start - x)) > 0.01:
+        while (abs(self.current_orientation - start - x)) > 0.01:
             continue
         self.cmd.angular.z = 0.0
         self.publisher_.publish(self.cmd)
