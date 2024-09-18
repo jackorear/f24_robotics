@@ -68,15 +68,15 @@ class RandomWalk(Node):
         return math.atan2(math.sin(angle), math.cos(angle))
    
     def turn_x_deg(self, x):
-        if self.current_orientation is None:
-            self.get_logger().info('turn_x_deg called but self.current_orientation is None')
+        if self.orientation is None:
+            self.get_logger().info('turn_x_deg called but self.orientation is None')
             return
     
         # Convert degrees to radians
         target_angle = math.radians(x)
         
         # Get the starting orientation
-        start_orientation = self.current_orientation
+        start_orientation = self.orientation
     
         # Compute the target orientation (where we want to end up)
         target_orientation = normalize_angle(start_orientation + target_angle)
@@ -89,7 +89,7 @@ class RandomWalk(Node):
         self.get_logger().info('Start turning...')
     
         # Keep turning until the robot reaches the target angle
-        while abs(normalize_angle(self.current_orientation - target_orientation)) > 0.05:  # Small tolerance for precision
+        while abs(normalize_angle(self.orientation - target_orientation)) > 0.05:  # Small tolerance for precision
             rclpy.spin_once(self)  # Update the current orientation
             self.publisher_.publish(self.cmd)  # Keep publishing the turn command
     
