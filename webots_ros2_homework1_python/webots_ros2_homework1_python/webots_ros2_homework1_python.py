@@ -67,7 +67,7 @@ class RandomWalk(Node):
         """Normalize the angle to be within [-pi, pi]"""
         return math.atan2(math.sin(angle), math.cos(angle))
    
-    def turn_x_deg(self, x)
+    def turn_x_deg(self, x):
         x = math.radians(x)
         if self.current_orientation == 'None':
             self.get_info().logger('Turn x deg called with None for self.current_orientation')
