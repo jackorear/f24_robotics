@@ -100,6 +100,7 @@ class RandomWalk(Node):
             self.get_logger().info(f'Current orientation: {self.orientation:.2f} rad, Target: {target_orientation:.2f} rad, Remaining: {abs(self.normalize_angle(self.orientation - target_orientation)):.2f} rad')
     
             rclpy.spin_once(self)  # Update the current orientation
+            self.get_logger().info('Passed spin_once')
             self.publisher_.publish(self.cmd)  # Keep publishing the turn command
     
             # Safety check to prevent infinite loop
