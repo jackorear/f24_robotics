@@ -9,7 +9,6 @@ from nav_msgs.msg import Odometry
 # import Quality of Service library, to set the correct profile and reliability in order to read sensor data.
 from rclpy.qos import ReliabilityPolicy, QoSProfile
 import math
-import time
 
 
 
@@ -61,27 +60,49 @@ class RandomWalk(Node):
         self.publisher_.publish(self.cmd)
         self.get_logger().info('Step 1')
         self.turtlebot_moving = True
-        time.sleep(math.radians(x) / ANGULAR_VEL)
+    
+        # Duration in seconds to turn `x` degrees
+        duration = math.radians(x) / ANGULAR_VEL
+    
+        # Create a non-blocking timer
+        self.turn_timer = self.create_timer(duration, self.stop_turn)
+
+    def stop_turn(self):
         self.cmd.angular.z = 0.0
         self.publisher_.publish(self.cmd)
         self.get_logger().info('Step 2')
         self.turtlebot_moving = False
+    
+        # Destroy the timer once it's no longer needed
+        self.turn_timer.cancel()
 
-    def move_x_dist(self, x):
+       def move_x_dist(self, x):
         if x > MAX_MOVE_DIST:
             x = MAX_MOVE_DIST
         elif x < STOP_DISTANCE:
             x = 0.0
         else:
             x = x - STOP_DISTANCE
+    
         self.cmd.linear.x = LINEAR_VEL
         self.cmd.angular.z = 0.0
         self.publisher_.publish(self.cmd)
         self.turtlebot_moving = True
-        time.sleep(x / LINEAR_VEL)
+    
+        # Calculate the duration to move `x` meters
+        duration = x / LINEAR_VEL
+    
+        # Create a non-blocking timer
+        self.move_timer = self.create_timer(duration, self.stop_move)
+    
+    def stop_move(self):
         self.cmd.linear.x = 0.0
         self.publisher_.publish(self.cmd)
         self.turtlebot_moving = False
+    
+        # Destroy the timer once it's no longer needed
+        self.move_timer.cancel()
+
 
     def dist_from_start(self, pos):
         (x,y) = pos
