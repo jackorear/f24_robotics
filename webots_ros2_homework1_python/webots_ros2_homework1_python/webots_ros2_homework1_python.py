@@ -63,7 +63,7 @@ class RandomWalk(Node):
         return yaw
 
         
-    def normalize_angle(angle):
+    def normalize_angle(self,angle):
         """Normalize the angle to be within [-pi, pi]"""
         return math.atan2(math.sin(angle), math.cos(angle))
    
@@ -79,7 +79,7 @@ class RandomWalk(Node):
         start_orientation = self.orientation
     
         # Compute the target orientation (where we want to end up)
-        target_orientation = normalize_angle(start_orientation + target_angle)
+        target_orientation = self.normalize_angle(start_orientation + target_angle)
     
         # Set the angular velocity to start turning
         self.cmd.linear.x = 0.0
