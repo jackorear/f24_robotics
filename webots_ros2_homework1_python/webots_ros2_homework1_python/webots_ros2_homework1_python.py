@@ -63,21 +63,43 @@ class RandomWalk(Node):
         return yaw
 
         
-    def turn_x_deg(self, x):
-        if self.orientation == None:
-            self.get_logger().info('turn_x_deg called but self.current_orientation == None')
+   def normalize_angle(angle):
+    """Normalize the angle to be within [-pi, pi]"""
+    return math.atan2(math.sin(angle), math.cos(angle))
+   
+   def turn_x_deg(self, x):
+        if self.current_orientation is None:
+            self.get_logger().info('turn_x_deg called but self.current_orientation is None')
             return
-        start = self.orientation
+    
+        # Convert degrees to radians
+        target_angle = math.radians(x)
+        
+        # Get the starting orientation
+        start_orientation = self.current_orientation
+    
+        # Compute the target orientation (where we want to end up)
+        target_orientation = normalize_angle(start_orientation + target_angle)
+    
+        # Set the angular velocity to start turning
         self.cmd.linear.x = 0.0
         self.cmd.angular.z = ANGULAR_VEL
         self.publisher_.publish(self.cmd)
-        self.get_logger().info('Step 1')
-        self.turtlebot_moving = True
-        time.sleep( math.radians(x) / ANGULAR_VEL )
+        
+        self.get_logger().info('Start turning...')
+    
+        # Keep turning until the robot reaches the target angle
+        while abs(normalize_angle(self.current_orientation - target_orientation)) > 0.05:  # Small tolerance for precision
+            rclpy.spin_once(self)  # Update the current orientation
+            self.publisher_.publish(self.cmd)  # Keep publishing the turn command
+    
+        # Stop the robot once the target orientation is reached
         self.cmd.angular.z = 0.0
         self.publisher_.publish(self.cmd)
-        self.get_logger().info('Step 2')
+        self.get_logger().info('Turn complete')
+    
         self.turtlebot_moving = False
+
 
     def move_x_dist(self, x):
         if x > MAX_MOVE_DIST:
