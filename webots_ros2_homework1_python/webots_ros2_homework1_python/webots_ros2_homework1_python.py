@@ -57,23 +57,36 @@ class RandomWalk(Node):
     def turn_x_deg(self, x):
         self.cmd.linear.x = 0.0
         self.cmd.angular.z = ANGULAR_VEL
-        self.publisher_.publish(self.cmd)
-        self.get_logger().info('Step 1')
         self.turtlebot_moving = True
     
-        # Duration in seconds to turn `x` degrees
-        duration = math.radians(x) / ANGULAR_VEL
+        # Calculate the duration to turn `x` degrees
+        self.turn_duration = math.radians(x) / ANGULAR_VEL
     
-        # Create a non-blocking timer
-        self.turn_timer = self.create_timer(duration, self.stop_turn)
+        # Set the start time
+        self.turn_start_time = self.get_clock().now()
+    
+        # Create a non-blocking timer that publishes the turning command at intervals
+        self.turn_timer = self.create_timer(0.1, self.publish_turn)
 
+    def publish_turn(self):
+        # Calculate the elapsed time
+        elapsed_time = (self.get_clock().now() - self.turn_start_time).nanoseconds / 1e9
+    
+        # Continue turning if duration has not been reached
+        if elapsed_time < self.turn_duration:
+            self.cmd.angular.z = ANGULAR_VEL
+            self.publisher_.publish(self.cmd)
+        else:
+            # Stop turning and cancel the timer
+            self.stop_turn()
+    
     def stop_turn(self):
         self.cmd.angular.z = 0.0
         self.publisher_.publish(self.cmd)
-        self.get_logger().info('Step 2')
         self.turtlebot_moving = False
+        self.get_logger().info('Turn complete')
     
-        # Destroy the timer once it's no longer needed
+        # Destroy the timer once the turn is completed
         self.turn_timer.cancel()
 
     def move_x_dist(self, x):
@@ -86,21 +99,36 @@ class RandomWalk(Node):
     
         self.cmd.linear.x = LINEAR_VEL
         self.cmd.angular.z = 0.0
-        self.publisher_.publish(self.cmd)
         self.turtlebot_moving = True
     
         # Calculate the duration to move `x` meters
-        duration = x / LINEAR_VEL
+        self.move_duration = x / LINEAR_VEL
     
-        # Create a non-blocking timer
-        self.move_timer = self.create_timer(duration, self.stop_move)
+        # Set the start time
+        self.move_start_time = self.get_clock().now()
+    
+        # Create a non-blocking timer that publishes the move command at intervals
+        self.move_timer = self.create_timer(0.1, self.publish_move)
+    
+    def publish_move(self):
+        # Calculate the elapsed time
+        elapsed_time = (self.get_clock().now() - self.move_start_time).nanoseconds / 1e9
+    
+        # Continue moving if the duration has not been reached
+        if elapsed_time < self.move_duration:
+            self.cmd.linear.x = LINEAR_VEL
+            self.publisher_.publish(self.cmd)
+        else:
+            # Stop moving and cancel the timer
+            self.stop_move()
     
     def stop_move(self):
         self.cmd.linear.x = 0.0
         self.publisher_.publish(self.cmd)
         self.turtlebot_moving = False
+        self.get_logger().info('Move complete')
     
-        # Destroy the timer once it's no longer needed
+        # Destroy the timer once the move is completed
         self.move_timer.cancel()
 
 
