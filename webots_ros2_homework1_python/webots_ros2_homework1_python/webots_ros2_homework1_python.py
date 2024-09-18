@@ -9,11 +9,12 @@ from nav_msgs.msg import Odometry
 # import Quality of Service library, to set the correct profile and reliability in order to read sensor data.
 from rclpy.qos import ReliabilityPolicy, QoSProfile
 import math
+import time
 
 
 
 LINEAR_VEL = 0.22
-ANGULAR_VEL = 0.3
+ANGULAR_VEL = 0.1
 STOP_DISTANCE = 0.2
 LIDAR_ERROR = 0.05
 LIDAR_AVOID_DISTANCE = 0.7
@@ -50,44 +51,24 @@ class RandomWalk(Node):
         self.cmd = Twist()
         self.timer = self.create_timer(timer_period, self.timer_callback)
         self.current_position = None
+        self.current_orientation = None
         self.orientation = 0.0
         self.start_x = 0.0
         self.start_y = 0.0
         
     def turn_x_deg(self, x):
+        start = self.current_orientation
         self.cmd.linear.x = 0.0
         self.cmd.angular.z = ANGULAR_VEL
+        self.publisher_.publish(self.cmd)
+        self.get_logger().info('Step 1')
         self.turtlebot_moving = True
-    
-        # Calculate the duration to turn `x` degrees
-        self.turn_duration = math.radians(x) / ANGULAR_VEL
-    
-        # Set the start time
-        self.turn_start_time = self.get_clock().now()
-    
-        # Create a non-blocking timer that publishes the turning command at intervals
-        self.turn_timer = self.create_timer(0.1, self.publish_turn)
-
-    def publish_turn(self):
-        # Calculate the elapsed time
-        elapsed_time = (self.get_clock().now() - self.turn_start_time).nanoseconds / 1e9
-    
-        # Continue turning if duration has not been reached
-        if elapsed_time < self.turn_duration:
-            self.cmd.angular.z = ANGULAR_VEL
-            self.publisher_.publish(self.cmd)
-        else:
-            # Stop turning and cancel the timer
-            self.stop_turn()
-    
-    def stop_turn(self):
+        while (math.abs(self.current_orientation - start - x) > 0.01:
+            continue
         self.cmd.angular.z = 0.0
         self.publisher_.publish(self.cmd)
+        self.get_logger().info('Step 2')
         self.turtlebot_moving = False
-        self.get_logger().info('Turn complete')
-    
-        # Destroy the timer once the turn is completed
-        self.turn_timer.cancel()
 
     def move_x_dist(self, x):
         if x > MAX_MOVE_DIST:
@@ -96,41 +77,14 @@ class RandomWalk(Node):
             x = 0.0
         else:
             x = x - STOP_DISTANCE
-    
         self.cmd.linear.x = LINEAR_VEL
         self.cmd.angular.z = 0.0
+        self.publisher_.publish(self.cmd)
         self.turtlebot_moving = True
-    
-        # Calculate the duration to move `x` meters
-        self.move_duration = x / LINEAR_VEL
-    
-        # Set the start time
-        self.move_start_time = self.get_clock().now()
-    
-        # Create a non-blocking timer that publishes the move command at intervals
-        self.move_timer = self.create_timer(0.1, self.publish_move)
-    
-    def publish_move(self):
-        # Calculate the elapsed time
-        elapsed_time = (self.get_clock().now() - self.move_start_time).nanoseconds / 1e9
-    
-        # Continue moving if the duration has not been reached
-        if elapsed_time < self.move_duration:
-            self.cmd.linear.x = LINEAR_VEL
-            self.publisher_.publish(self.cmd)
-        else:
-            # Stop moving and cancel the timer
-            self.stop_move()
-    
-    def stop_move(self):
+        time.sleep(x / LINEAR_VEL)
         self.cmd.linear.x = 0.0
         self.publisher_.publish(self.cmd)
         self.turtlebot_moving = False
-        self.get_logger().info('Move complete')
-    
-        # Destroy the timer once the move is completed
-        self.move_timer.cancel()
-
 
     def dist_from_start(self, pos):
         (x,y) = pos
