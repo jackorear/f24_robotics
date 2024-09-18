@@ -9,14 +9,17 @@ from nav_msgs.msg import Odometry
 # import Quality of Service library, to set the correct profile and reliability in order to read sensor data.
 from rclpy.qos import ReliabilityPolicy, QoSProfile
 import math
+import time
 
 
 
 LINEAR_VEL = 0.22
+ANGULAR_VEL = 0.1
 STOP_DISTANCE = 0.2
 LIDAR_ERROR = 0.05
 LIDAR_AVOID_DISTANCE = 0.7
 SAFE_STOP_DISTANCE = STOP_DISTANCE + LIDAR_ERROR
+MAX_MOVE_DIST = 2
 RIGHT_SIDE_INDEX = 270
 RIGHT_FRONT_INDEX = 210
 LEFT_FRONT_INDEX=150
@@ -48,7 +51,29 @@ class RandomWalk(Node):
         self.cmd = Twist()
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
+    def turn_x_deg(self, x):
+        self.cmd.linear.x = 0
+        self.cmd.angular.z = ANGULAR_VEL
+        self.publisher_.publish(self.cmd)
+        self.turtlebot_moving = True
+        time.sleep(math.radians(x) / ANGULAR_VEL)
+        self.cmd.angular.z = 0
+        self.publisher_.publish(self.cmd)
+        self.turtlebot_moveing = False
 
+    def move_x_dist(self, x):
+        if x > MAX_MOVE_DIST:
+            x = MAX_MOVE_DIST
+        self.cmd.linear.x = LINEAR_VEL
+        self.cmd.angular.z = 0
+        self.publisher_.publish(self.cmd)
+        self.turtlebot_moving = True
+        time.sleep(x / LINEAR_VEL)
+        self.cmd.linear.x = 0
+        self.publisher_.publish(self.cmd)
+        self.turtlebot_moving = False
+
+        
     def listener_callback1(self, msg1):
         #self.get_logger().info('scan: "%s"' % msg1.ranges)
         scan = msg1.ranges
@@ -120,10 +145,9 @@ class RandomWalk(Node):
                 self.get_logger().info('Turning')
                 self.turtlebot_moving = True
         else:
-            self.cmd.linear.x = 0.3
-            self.cmd.linear.z = 0.0
-            self.publisher_.publish(self.cmd)
-            self.turtlebot_moving = True
+            self.turn_x_deg(15)
+            self.move_x_dist(1)
+            
             
 
         self.get_logger().info('Distance of the obstacle : %f' % front_lidar_min)
