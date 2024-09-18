@@ -51,17 +51,17 @@ class RandomWalk(Node):
         self.cmd = Twist()
         self.timer = self.create_timer(timer_period, self.timer_callback)
         self.current_position = None
-        self.orientation = 0
-        self.start_x = 0
-        self.start_y = 0
+        self.orientation = 0.0
+        self.start_x = 0.0
+        self.start_y = 0.0
         
     def turn_x_deg(self, x):
-        self.cmd.linear.x = 0
+        self.cmd.linear.x = 0.0
         self.cmd.angular.z = ANGULAR_VEL
         self.publisher_.publish(self.cmd)
         self.turtlebot_moving = True
         time.sleep(math.radians(x) / ANGULAR_VEL)
-        self.cmd.angular.z = 0
+        self.cmd.angular.z = 0.0
         self.publisher_.publish(self.cmd)
         self.turtlebot_moving = False
 
@@ -69,15 +69,15 @@ class RandomWalk(Node):
         if x > MAX_MOVE_DIST:
             x = MAX_MOVE_DIST
         elif x < STOP_DISTANCE:
-            x = 0
+            x = 0.0
         else:
             x = x - STOP_DISTANCE
         self.cmd.linear.x = LINEAR_VEL
-        self.cmd.angular.z = 0
+        self.cmd.angular.z = 0.0
         self.publisher_.publish(self.cmd)
         self.turtlebot_moving = True
         time.sleep(x / LINEAR_VEL)
-        self.cmd.linear.x = 0
+        self.cmd.linear.x = 0.0
         self.publisher_.publish(self.cmd)
         self.turtlebot_moving = False
 
