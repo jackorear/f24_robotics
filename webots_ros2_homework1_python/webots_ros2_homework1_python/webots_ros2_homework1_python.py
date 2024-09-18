@@ -77,7 +77,7 @@ class RandomWalk(Node):
         self.cmd.linear.x = 0.0
         self.publisher_.publish(self.cmd)
         self.get_logger().info('Turn x deg called for %f duration (s)' % turn_duration)
-        timer.sleep(turn_duration)
+        time.sleep(turn_duration)
         self.cmd.angular.z = 0
         self.publisher_.publish(self.cmd)
         return
