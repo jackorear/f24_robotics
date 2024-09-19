@@ -45,121 +45,40 @@ class RandomWalk(Node):
             QoSProfile(depth=10, reliability=ReliabilityPolicy.BEST_EFFORT))
         self.laser_forward = 0
         self.odom_data = 0
-        timer_period = 0.5
-        self.pose_saved=''
+        self.pose_saved = ''
         self.cmd = Twist()
-        self.timer = self.create_timer(timer_period, self.timer_callback)
+        self.timer = self.create_timer(0.5, self.timer_callback)
         self.current_position = None
         self.orientation = 0.0
         self.start_x = 0.0
         self.start_y = 0.0
-
-
-    def quaternion_to_yaw(self, q):
-        # Quaternion to Euler angles (yaw)
-        siny_cosp = 2 * (q.w * q.z + q.x * q.y)
-        cosy_cosp = 1 - 2 * (q.y * q.y + q.z * q.z)
-        yaw = math.atan2(siny_cosp, cosy_cosp)
-        return yaw
-
-        
-    def normalize_angle(self,angle):
-        """Normalize the angle to be within [-pi, pi]"""
-        return math.atan2(math.sin(angle), math.cos(angle))
-   
-    def turn_x_deg(self, x):
-        x = math.radians(x)
-        if self.orientation == None:
-            self.get_logger().info('Turn x deg called with None for self.current_orientation')
-            return
-        turn_duration = (x / ANGULAR_VEL)
-        self.cmd.angular.z = ANGULAR_VEL
-        self.cmd.linear.x = 0.0
-        self.publisher_.publish(self.cmd)
-        self.get_logger().info('Turn x deg called for %f duration (s)' % turn_duration)
-        time.sleep(turn_duration)
-        self.cmd.angular.z = 0.0
-        self.publisher_.publish(self.cmd)
-        return
-        
-    def move_x_dist(self, x):
-        if x > MAX_MOVE_DIST:
-            x = MAX_MOVE_DIST
-        elif x < STOP_DISTANCE:
-            x = 0.0
-        else:
-            x = x - STOP_DISTANCE
-        self.cmd.linear.x = LINEAR_VEL
-        self.cmd.angular.z = 0.0
-        self.publisher_.publish(self.cmd)
-        self.turtlebot_moving = True
-        time.sleep(x / LINEAR_VEL)
-        self.cmd.linear.x = 0.0
-        self.publisher_.publish(self.cmd)
-        self.turtlebot_moving = False
+        self.distance_from_start = 0.0  # Track distance from start
 
     def dist_from_start(self, pos):
-        (x,y) = pos
+        """Calculate distance from the starting position."""
+        (x, y) = pos
         dx = x - self.start_x
         dy = y - self.start_y
         return math.sqrt(dx**2 + dy**2)
-
-    def get_proj_pos(self, dir, dist):
-        if self.current_position == None:
-            return 0,0
-        curr_x, curr_y = self.current_position
-        #current heading is self.orientation
-        theta = self.orientation + math.radians(dir)
-        proj_x = curr_x + math.cos(theta) * dist
-        proj_y = curr_y + math.sin(theta) * dist
-        proj_pos = proj_x, proj_y
-        return proj_pos
-        
-    def listener_callback1(self, msg1):
-        #self.get_logger().info('scan: "%s"' % msg1.ranges)
-        scan = msg1.ranges
-        self.scan_cleaned = []
-       
-        #self.get_logger().info('scan: "%s"' % scan)
-        # Assume 360 range measurements
-        for reading in scan:
-            if reading == float('Inf'):
-                self.scan_cleaned.append(3.5)
-            elif math.isnan(reading):
-                self.scan_cleaned.append(0.0)
-            else:
-            	self.scan_cleaned.append(reading)
-
-
-
+    
     def listener_callback2(self, msg2):
+        """Odometry callback to track position and calculate distance from start."""
         position = msg2.pose.pose.position
-        orientation = msg2.pose.pose.orientation
-        (posx, posy, posz) = (position.x, position.y, position.z)
         self.current_position = (position.x, position.y)
-        self.orientation = self.quaternion_to_yaw(orientation)
-        (qx, qy, qz, qw) = (orientation.x, orientation.y, orientation.z, orientation.w)
-        self.get_logger().info('self position: {},{},{}'.format(posx,posy,posz))
-        self.get_logger().info('self orientation: {}'.format(self.orientation))
-        # similarly for twist message if you need
-        self.pose_saved=position
-
-         # Store the initial position when first Odometry message is received
+    
+        # Update distance from start
+        self.distance_from_start = self.dist_from_start(self.current_position)
+    
+        # Log the current position and distance from start
+        self.get_logger().info('Current position: {}'.format(self.current_position))
+        self.get_logger().info('Distance from start: {}'.format(self.distance_from_start))
+    
+        # Set initial position as the start position if it's the first odometry reading
         if self.start_x == 0.0 and self.start_y == 0.0:
-            self.start_x = posx
-            self.start_y = posy
-            self.get_logger().info('Initial Position: {},{}'.format(self.start_x, self.start_y))
-        
-        #Example of how to identify a stall..need better tuned position deltas; wheels spin and example fast
-        #diffX = math.fabs(self.pose_saved.x- position.x)
-        #diffY = math.fabs(self.pose_saved.y - position.y)
-        #if (diffX < 0.0001 and diffY < 0.0001):
-           #self.stall = True
-        #else:
-           #self.stall = False
-           
-        return None
-        
+            self.start_x = position.x
+            self.start_y = position.y
+            self.get_logger().info('Initial position saved as: {}, {}'.format(self.start_x, self.start_y))
+    
     def timer_callback(self):
         if len(self.scan_cleaned) == 0:
             self.turtlebot_moving = False
@@ -174,14 +93,33 @@ class RandomWalk(Node):
         self.get_logger().info('Left side min distance: %f' % left_lidar_min)
         self.get_logger().info('Front min distance: %f' % front_lidar_min)
         self.get_logger().info('Right side min distance: %f' % right_lidar_min)
-        
+    
         # Detect if the robot is in an open space (no obstacles within a safe range)
         if front_lidar_min > LIDAR_AVOID_DISTANCE and right_lidar_min > LIDAR_AVOID_DISTANCE and left_lidar_min > LIDAR_AVOID_DISTANCE:
-            self.get_logger().info('Open space detected, taking random action.')
-            # Perform a random turn or zig-zag movement to avoid getting stuck in a loop
+            self.get_logger().info('Open space detected, evaluating random movement.')
+    
+            # Record the initial distance from the start before random movement
+            initial_distance_from_start = self.distance_from_start
+    
+            # Perform a random turn or zig-zag movement
+            random_turn_direction = random.choice([1, -1])  # 1 for left, -1 for right
             self.cmd.linear.x = LINEAR_VEL
-            self.cmd.angular.z = ANGULAR_VEL * 0.5 if random.choice([True, False]) else -ANGULAR_VEL * 0.5
+            self.cmd.angular.z = ANGULAR_VEL * 0.5 * random_turn_direction
             self.publisher_.publish(self.cmd)
+    
+            # Pause and allow the robot to move in a random direction for a short time
+            time.sleep(1)
+    
+            # Recalculate the distance from the start after random movement
+            new_distance_from_start = self.dist_from_start(self.current_position)
+    
+            # Check if the movement increased the distance from the start
+            if new_distance_from_start > initial_distance_from_start:
+                self.get_logger().info('Random movement increased distance from start.')
+                self.publisher_.publish(self.cmd)  # Continue with random movement
+            else:
+                self.get_logger().info('Random movement did not increase distance from start, turning 90 degrees.')
+                self.turn_x_deg(90)  # Turn 90 degrees if distance didn't increase
             return
     
         # If an obstacle is directly in front, turn left to avoid it
@@ -209,19 +147,19 @@ class RandomWalk(Node):
     
         # Publish the command
         self.publisher_.publish(self.cmd)
-
-
-def main(args=None):
-    # initialize the ROS communication
-    rclpy.init(args=args)
-    # declare the node constructor
-    random_walk_node = RandomWalk()
-    # pause the program execution, waits for a request to kill the node (ctrl+c)
-    rclpy.spin(random_walk_node)
-    # Explicity destroy the node
-    random_walk_node.destroy_node()
-    # shutdown the ROS communication
-    rclpy.shutdown()
+    
+    
+    def main(args=None):
+        # initialize the ROS communication
+        rclpy.init(args=args)
+        # declare the node constructor
+        random_walk_node = RandomWalk()
+        # pause the program execution, waits for a request to kill the node (ctrl+c)
+        rclpy.spin(random_walk_node)
+        # Explicity destroy the node
+        random_walk_node.destroy_node()
+        # shutdown the ROS communication
+        rclpy.shutdown()
 
 
 
