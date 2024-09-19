@@ -139,11 +139,11 @@ class RandomWalk(Node):
             self.get_logger().info('Initial position saved as: {}, {}'.format(self.start_x, self.start_y))
     
            
-    def timer_callback(self):
+   def timer_callback(self):
         if len(self.scan_cleaned) == 0:
             self.turtlebot_moving = False
             return
-    
+        
         # Get the minimum distance from the laser scans on the front, right, and left
         left_lidar_min = min(self.scan_cleaned[LEFT_SIDE_INDEX:LEFT_FRONT_INDEX])
         right_lidar_min = min(self.scan_cleaned[RIGHT_FRONT_INDEX:RIGHT_SIDE_INDEX])
@@ -154,7 +154,6 @@ class RandomWalk(Node):
         self.get_logger().info('Front min distance: %f' % front_lidar_min)
         self.get_logger().info('Right side min distance: %f' % right_lidar_min)
         
-    
         # If an obstacle is directly in front, turn left to avoid it
         if front_lidar_min < SAFE_STOP_DISTANCE:
             self.get_logger().info('Obstacle detected ahead, turning left.')
