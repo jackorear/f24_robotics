@@ -16,6 +16,7 @@ LINEAR_VEL = 0.22
 ANGULAR_VEL = 2.1
 STOP_DISTANCE = 0.2
 LIDAR_ERROR = 0.05
+WALL_DISTANCE = 0.3
 LIDAR_AVOID_DISTANCE = .7
 SAFE_STOP_DISTANCE = STOP_DISTANCE + LIDAR_ERROR
 MAX_MOVE_DIST = 2
@@ -161,12 +162,12 @@ class RandomWalk(Node):
             return
     
         # Follow the right wall
-        if right_lidar_min < LIDAR_AVOID_DISTANCE - LIDAR_ERROR:
+        if right_lidar_min < WALL_DISTANCE - LIDAR_ERROR:
             # Too close to the right wall, turn left slightly
             self.get_logger().info('Too close to right wall, turning left.')
             self.cmd.angular.z = ANGULAR_VEL * 0.5  # Turn slightly left
             self.cmd.linear.x = LINEAR_VEL * 0.5    # Slow forward movement
-        elif right_lidar_min > LIDAR_AVOID_DISTANCE + LIDAR_ERROR:
+        elif right_lidar_min > WALL_DISTANCE + LIDAR_ERROR:
             # Too far from the right wall, turn right slightly
             self.get_logger().info('Too far from right wall, turning right.')
             self.cmd.angular.z = -ANGULAR_VEL * 0.5  # Turn slightly right
