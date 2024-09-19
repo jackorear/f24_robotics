@@ -10,7 +10,7 @@ from nav_msgs.msg import Odometry
 from rclpy.qos import ReliabilityPolicy, QoSProfile
 import math
 import time
-
+import random
 
 LINEAR_VEL = 0.22
 ANGULAR_VEL = 2.1
