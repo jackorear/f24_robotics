@@ -60,7 +60,51 @@ class RandomWalk(Node):
         dx = x - self.start_x
         dy = y - self.start_y
         return math.sqrt(dx**2 + dy**2)
+        
+    def quaternion_to_yaw(self, q):
+        # Quaternion to Euler angles (yaw)
+        siny_cosp = 2 * (q.w * q.z + q.x * q.y)
+        cosy_cosp = 1 - 2 * (q.y * q.y + q.z * q.z)
+        yaw = math.atan2(siny_cosp, cosy_cosp)
+        return yaw
 
+        
+    def normalize_angle(self,angle):
+        """Normalize the angle to be within [-pi, pi]"""
+        return math.atan2(math.sin(angle), math.cos(angle))
+        
+    def turn_x_deg(self, x):
+        x = math.radians(x)
+        if self.orientation == None:
+            self.get_logger().info('Turn x deg called with None for self.current_orientation')
+            return
+        turn_duration = (x / ANGULAR_VEL)
+        self.cmd.angular.z = ANGULAR_VEL
+        self.cmd.linear.x = 0.0
+        self.publisher_.publish(self.cmd)
+        self.get_logger().info('Turn x deg called for %f duration (s)' % turn_duration)
+        time.sleep(turn_duration)
+        self.cmd.angular.z = 0.0
+        self.publisher_.publish(self.cmd)
+        return
+        
+    def move_x_dist(self, x):
+        if x > MAX_MOVE_DIST:
+            x = MAX_MOVE_DIST
+        elif x < STOP_DISTANCE:
+            x = 0.0
+        else:
+            x = x - STOP_DISTANCE
+        self.cmd.linear.x = LINEAR_VEL
+        self.cmd.angular.z = 0.0
+        self.publisher_.publish(self.cmd)
+        self.turtlebot_moving = True
+        time.sleep(x / LINEAR_VEL)
+        self.cmd.linear.x = 0.0
+        self.publisher_.publish(self.cmd)
+        self.turtlebot_moving = False
+        return
+    
     def listener_callback1(self, msg1):
         #self.get_logger().info('scan: "%s"' % msg1.ranges)
         scan = msg1.ranges
