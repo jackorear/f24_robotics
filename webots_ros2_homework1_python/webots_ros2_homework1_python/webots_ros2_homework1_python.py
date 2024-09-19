@@ -138,6 +138,7 @@ class RandomWalk(Node):
             self.start_y = position.y
             self.get_logger().info('Initial position saved as: {}, {}'.format(self.start_x, self.start_y))
     
+           
     def timer_callback(self):
         if len(self.scan_cleaned) == 0:
             self.turtlebot_moving = False
@@ -152,33 +153,14 @@ class RandomWalk(Node):
         self.get_logger().info('Left side min distance: %f' % left_lidar_min)
         self.get_logger().info('Front min distance: %f' % front_lidar_min)
         self.get_logger().info('Right side min distance: %f' % right_lidar_min)
-    
+        
         # Detect if the robot is in an open space (no obstacles within a safe range)
         if front_lidar_min > LIDAR_AVOID_DISTANCE and right_lidar_min > LIDAR_AVOID_DISTANCE and left_lidar_min > LIDAR_AVOID_DISTANCE:
-            self.get_logger().info('Open space detected, evaluating random movement.')
-    
-            # Record the initial distance from the start before random movement
-            initial_distance_from_start = self.distance_from_start
-    
-            # Perform a random turn or zig-zag movement
-            random_turn_direction = random.choice([1, -1])  # 1 for left, -1 for right
+            self.get_logger().info('Open space detected, taking random action.')
+            # Perform a random turn or zig-zag movement to avoid getting stuck in a loop
             self.cmd.linear.x = LINEAR_VEL
-            self.cmd.angular.z = ANGULAR_VEL * 0.5 * random_turn_direction
+            self.cmd.angular.z = ANGULAR_VEL * 0.5 if random.choice([True, False]) else -ANGULAR_VEL * 0.5
             self.publisher_.publish(self.cmd)
-    
-            # Pause and allow the robot to move in a random direction for a short time
-            time.sleep(1)
-    
-            # Recalculate the distance from the start after random movement
-            new_distance_from_start = self.dist_from_start(self.current_position)
-    
-            # Check if the movement increased the distance from the start
-            if new_distance_from_start > initial_distance_from_start:
-                self.get_logger().info('Random movement increased distance from start.')
-                self.publisher_.publish(self.cmd)  # Continue with random movement
-            else:
-                self.get_logger().info('Random movement did not increase distance from start, turning 90 degrees.')
-                self.turn_x_deg(90)  # Turn 90 degrees if distance didn't increase
             return
     
         # If an obstacle is directly in front, turn left to avoid it
