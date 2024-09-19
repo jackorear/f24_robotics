@@ -161,50 +161,45 @@ class RandomWalk(Node):
         return None
         
     def timer_callback(self):
-        if (len(self.scan_cleaned)==0):
-    	    self.turtlebot_moving = False
-    	    return
-    	    
-        #left_lidar_samples = self.scan_cleaned[LEFT_SIDE_INDEX:LEFT_FRONT_INDEX]
-        #right_lidar_samples = self.scan_cleaned[RIGHT_FRONT_INDEX:RIGHT_SIDE_INDEX]
-        #front_lidar_samples = self.scan_cleaned[LEFT_FRONT_INDEX:RIGHT_FRONT_INDEX]
+        if len(self.scan_cleaned) == 0:
+            self.turtlebot_moving = False
+            return
         
+        # Get the minimum distance from the laser scans on the front, right, and left
         left_lidar_min = min(self.scan_cleaned[LEFT_SIDE_INDEX:LEFT_FRONT_INDEX])
         right_lidar_min = min(self.scan_cleaned[RIGHT_FRONT_INDEX:RIGHT_SIDE_INDEX])
         front_lidar_min = min(self.scan_cleaned[LEFT_FRONT_INDEX:RIGHT_FRONT_INDEX])
-
-        #self.get_logger().info('left scan slice: "%s"'%  min(left_lidar_samples))
-        #self.get_logger().info('front scan slice: "%s"'%  min(front_lidar_samples))
-        #self.get_logger().info('right scan slice: "%s"'%  min(right_lidar_samples))
-        best_dir = 0
-        best_dist = 0
-        best_tot_dist = 0
-        for dir in range(len(self.scan_cleaned)):
-            dist = self.scan_cleaned[dir]
-            projected_pos = self.get_proj_pos(dir, self.scan_cleaned[dir])
-            projected_tot_dist = self.dist_from_start(projected_pos)
-            if projected_tot_dist > best_tot_dist:
-                best_dir = dir
-                best_dist = dist
-                best_tot_dist = projected_tot_dist
-        self.get_logger().info('Call to turn %f deg' % best_dir)
-        self.turn_x_deg(best_dir)
-        self.get_logger().info('Call to move %f m' % best_dist)
-        self.move_x_dist(best_dist)
-            
-            
-            
-            
-
-        self.get_logger().info('Distance of the obstacle : %f' % front_lidar_min)
-        self.get_logger().info('I receive: "%s"' %
-                               str(self.odom_data))
-        if self.stall == True:
-           self.get_logger().info('Stall reported')
+    
+        # Log the distances for debugging
+        self.get_logger().info('Left side min distance: %f' % left_lidar_min)
+        self.get_logger().info('Front min distance: %f' % front_lidar_min)
+        self.get_logger().info('Right side min distance: %f' % right_lidar_min)
         
-        # Display the message on the console
-        self.get_logger().info('Publishing: "%s"' % self.cmd)
- 
+        # If an obstacle is directly in front, turn left to avoid it
+        if front_lidar_min < SAFE_STOP_DISTANCE:
+            self.get_logger().info('Obstacle detected ahead, turning left.')
+            self.turn_x_deg(90)
+            return
+    
+        # Follow the right wall
+        if right_lidar_min < LIDAR_AVOID_DISTANCE - LIDAR_ERROR:
+            # Too close to the right wall, turn left slightly
+            self.get_logger().info('Too close to right wall, turning left.')
+            self.cmd.angular.z = ANGULAR_VEL * 0.5  # Turn slightly left
+            self.cmd.linear.x = LINEAR_VEL * 0.5    # Slow forward movement
+        elif right_lidar_min > LIDAR_AVOID_DISTANCE + LIDAR_ERROR:
+            # Too far from the right wall, turn right slightly
+            self.get_logger().info('Too far from right wall, turning right.')
+            self.cmd.angular.z = -ANGULAR_VEL * 0.5  # Turn slightly right
+            self.cmd.linear.x = LINEAR_VEL * 0.5     # Slow forward movement
+        else:
+            # Maintain a straight path
+            self.get_logger().info('Maintaining straight path.')
+            self.cmd.angular.z = 0.0
+            self.cmd.linear.x = LINEAR_VEL
+    
+        # Publish the command
+        self.publisher_.publish(self.cmd)
 
 
 def main(args=None):
