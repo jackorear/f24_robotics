@@ -139,7 +139,7 @@ class RandomWalk(Node):
             self.get_logger().info('Initial position saved as: {}, {}'.format(self.start_x, self.start_y))
     
            
-   def timer_callback(self):
+    def timer_callback(self):
         if len(self.scan_cleaned) == 0:
             self.turtlebot_moving = False
             return
