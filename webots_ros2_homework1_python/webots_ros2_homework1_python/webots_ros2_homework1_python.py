@@ -54,6 +54,8 @@ class RandomWalk(Node):
         self.start_x = 0.0
         self.start_y = 0.0
         self.distance_from_start = 0.0  # Track distance from start
+        # Open a file for writing the position
+        self.position_file = open('position.txt', 'w')
 
     def dist_from_start(self, pos):
         """Calculate distance from the starting position."""
@@ -138,7 +140,9 @@ class RandomWalk(Node):
             self.start_x = position.x
             self.start_y = position.y
             self.get_logger().info('Initial position saved as: {}, {}'.format(self.start_x, self.start_y))
-    
+        # Write the current position to the file
+        self.position_file.write(f'{position.x}, {position.y}\n')
+        self.position_file.flush()  # Ensure the data is written to the file
            
     def timer_callback(self):
         if len(self.scan_cleaned) == 0:
@@ -180,7 +184,10 @@ class RandomWalk(Node):
     
         # Publish the command
         self.publisher_.publish(self.cmd)
-    
+        
+def __del__(self):
+        # Ensure the file is closed when the node is destroyed
+        self.position_file.close()    
     
 def main(args=None):
     # initialize the ROS communication
@@ -193,7 +200,6 @@ def main(args=None):
     random_walk_node.destroy_node()
     # shutdown the ROS communication
     rclpy.shutdown()
-
 
 
 if __name__ == '__main__':
