@@ -149,17 +149,17 @@ class RandomWalk(Node):
         self.publisher_.publish(self.cmd)
     
     
-    def main(args=None):
-        # initialize the ROS communication
-        rclpy.init(args=args)
-        # declare the node constructor
-        random_walk_node = RandomWalk()
-        # pause the program execution, waits for a request to kill the node (ctrl+c)
-        rclpy.spin(random_walk_node)
-        # Explicity destroy the node
-        random_walk_node.destroy_node()
-        # shutdown the ROS communication
-        rclpy.shutdown()
+def main(args=None):
+    # initialize the ROS communication
+    rclpy.init(args=args)
+    # declare the node constructor
+    random_walk_node = RandomWalk()
+    # pause the program execution, waits for a request to kill the node (ctrl+c)
+    rclpy.spin(random_walk_node)
+    # Explicity destroy the node
+    random_walk_node.destroy_node()
+    # shutdown the ROS communication
+    rclpy.shutdown()
 
 
 
