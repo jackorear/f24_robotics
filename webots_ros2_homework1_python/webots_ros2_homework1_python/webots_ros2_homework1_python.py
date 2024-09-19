@@ -154,14 +154,6 @@ class RandomWalk(Node):
         self.get_logger().info('Front min distance: %f' % front_lidar_min)
         self.get_logger().info('Right side min distance: %f' % right_lidar_min)
         
-        # Detect if the robot is in an open space (no obstacles within a safe range)
-        if front_lidar_min > LIDAR_AVOID_DISTANCE and right_lidar_min > LIDAR_AVOID_DISTANCE and left_lidar_min > LIDAR_AVOID_DISTANCE:
-            self.get_logger().info('Open space detected, taking random action.')
-            # Perform a random turn or zig-zag movement to avoid getting stuck in a loop
-            self.cmd.linear.x = LINEAR_VEL
-            self.cmd.angular.z = ANGULAR_VEL * 0.5 if random.choice([True, False]) else -ANGULAR_VEL * 0.5
-            self.publisher_.publish(self.cmd)
-            return
     
         # If an obstacle is directly in front, turn left to avoid it
         if front_lidar_min < SAFE_STOP_DISTANCE:
