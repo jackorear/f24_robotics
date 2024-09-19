@@ -60,7 +60,22 @@ class RandomWalk(Node):
         dx = x - self.start_x
         dy = y - self.start_y
         return math.sqrt(dx**2 + dy**2)
-    
+
+    def listener_callback1(self, msg1):
+        #self.get_logger().info('scan: "%s"' % msg1.ranges)
+        scan = msg1.ranges
+        self.scan_cleaned = []
+       
+        #self.get_logger().info('scan: "%s"' % scan)
+        # Assume 360 range measurements
+        for reading in scan:
+            if reading == float('Inf'):
+                self.scan_cleaned.append(3.5)
+            elif math.isnan(reading):
+                self.scan_cleaned.append(0.0)
+            else:
+            	self.scan_cleaned.append(reading)
+            
     def listener_callback2(self, msg2):
         """Odometry callback to track position and calculate distance from start."""
         position = msg2.pose.pose.position
