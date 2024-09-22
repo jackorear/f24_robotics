@@ -163,7 +163,7 @@ class RandomWalk(Node):
         if front_lidar_min < SAFE_STOP_DISTANCE:
             self.get_logger().info('Obstacle detected ahead, turning left.')
             self.cmd.linear.x = 0.0
-            self.cmd.angular.z = ANGULAR_VEL * .25
+            self.cmd.angular.z = ANGULAR_VEL * .5
             self.publisher_.publish(self.cmd)
             return
     
@@ -179,11 +179,15 @@ class RandomWalk(Node):
             self.cmd.angular.z = -ANGULAR_VEL * .5  # Turn slightly right
             self.cmd.linear.x = LINEAR_VEL * 0.5   # Slow forward movement
         else:
-            # Maintain a straight path
-            self.get_logger().info('Maintaining straight path.')
-            self.cmd.angular.z = 0.0
-            self.cmd.linear.x = LINEAR_VEL
+            # Maintain a straight path, but add a random angular velocity between -20 and 20 degrees
+            random_angle_deg = random.uniform(-20, 20)  # Generate random angle between -20 and 20 degrees
+            random_angle_rad = math.radians(random_angle_deg)  # Convert degrees to radians
     
+            self.get_logger().info('Maintaining path with random direction change of %f degrees' % random_angle_deg)
+            
+            self.cmd.angular.z = random_angle_rad  # Set the random angular velocity
+            self.cmd.linear.x = LINEAR_VEL  # Maintain forward movement
+        
         # Publish the command
         self.publisher_.publish(self.cmd)
         
