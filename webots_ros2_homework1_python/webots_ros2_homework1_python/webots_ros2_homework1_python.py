@@ -162,7 +162,7 @@ class RandomWalk(Node):
         # If an obstacle is directly in front, turn left to avoid it
         if front_lidar_min < SAFE_STOP_DISTANCE:
             self.get_logger().info('Obstacle detected ahead, turning left.')
-            self.cmd.linear.x = 0
+            self.cmd.linear.x = 0.0
             self.cmd.angular.z = ANGULAR_VEL * .25
             self.publisher_.publish(self.cmd)
             return
