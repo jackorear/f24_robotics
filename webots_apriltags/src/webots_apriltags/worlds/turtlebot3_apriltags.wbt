@@ -58,12 +58,6 @@ TurtleBot3Burger {
       width 3280
       height 2464
       fieldOfView 1
-      ROS2Publisher {
-        topicName "/TurtleBot3Burger/camera/image_color"
-      }
-      ROS2Publisher {
-        topicName "/TurtleBot3Burger/camera/camera_info"
-      }
     }
 
 
