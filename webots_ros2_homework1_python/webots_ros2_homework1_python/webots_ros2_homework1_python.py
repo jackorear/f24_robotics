@@ -14,16 +14,16 @@ import random
 
 LINEAR_VEL = 0.15
 ANGULAR_VEL = 1.0
-STOP_DISTANCE = 0.4
+STOP_DISTANCE = 0.5
 LIDAR_ERROR = 0.05
 WALL_DISTANCE = 0.35
 LIDAR_AVOID_DISTANCE = .7
 SAFE_STOP_DISTANCE = STOP_DISTANCE + LIDAR_ERROR
 MAX_MOVE_DIST = 2
-RIGHT_SIDE_INDEX = 270
-RIGHT_FRONT_INDEX = 210
-LEFT_FRONT_INDEX=150
-LEFT_SIDE_INDEX=90
+RIGHT_SIDE_INDEX = 90
+RIGHT_FRONT_INDEX = 30
+LEFT_FRONT_INDEX = 330
+LEFT_SIDE_INDEX = 270
 
 class RandomWalk(Node):
 
@@ -119,7 +119,9 @@ class RandomWalk(Node):
             if reading == float('Inf'):
                 self.scan_cleaned.append(3.5)
             elif math.isnan(reading):
-                self.scan_cleaned.append(0.0)
+                self.scan_cleaned.append(0.01)
+            elif reading == float(0):
+                self.scan_cleaned.append(10.0)
             else:
             	self.scan_cleaned.append(reading)
             
@@ -152,7 +154,7 @@ class RandomWalk(Node):
         # Get the minimum distance from the laser scans on the front, right, and left
         left_lidar_min = min(self.scan_cleaned[LEFT_SIDE_INDEX:LEFT_FRONT_INDEX])
         right_lidar_min = min(self.scan_cleaned[RIGHT_FRONT_INDEX:RIGHT_SIDE_INDEX])
-        front_lidar_min = min(self.scan_cleaned[LEFT_FRONT_INDEX:RIGHT_FRONT_INDEX])
+        front_lidar_min = min(self.scan_cleaned[LEFT_FRONT_INDEX:359] + self.scan_cleaned[0:RIGHT_FRONT_INDEX])
     
         # Log the distances for debugging
         self.get_logger().info('Left side min distance: %f' % left_lidar_min)
@@ -173,7 +175,7 @@ class RandomWalk(Node):
             self.get_logger().info('Too close to right wall, turning left.')
             self.cmd.angular.z = ANGULAR_VEL * 0.5  # Turn slightly left
             self.cmd.linear.x = LINEAR_VEL * 0.5    # Slow forward movement
-        elif right_lidar_min > WALL_DISTANCE + LIDAR_ERROR and right_lidar_min < 3 * (WALL_DISTANCE + LIDAR_ERROR):
+        elif right_lidar_min > WALL_DISTANCE + LIDAR_ERROR and right_lidar_min < 3 * (WALL_DISTANCE):
             # Too far from the right wall, turn right slightly
             self.get_logger().info('Too far from right wall, turning right.')
             self.cmd.angular.z = -ANGULAR_VEL * .5  # Turn slightly right
