@@ -47,25 +47,18 @@ TurtleBot3Burger {
     InertialUnit {
       name "inertial_unit"
     }
-   Camera {
-    translation 0.06 0 0
-    children [
-      Pose {
-        translation 0 0 0
-        rotation 0 1 0 1.57
-      }
-    ]
-    width 3280
-    height 2464
-    fieldOfView 1
-    recognition TRUE  # Optional: Enable recognition if needed
-    ROS2Publisher {
-      topicName "/TurtleBot3Burger/camera/image_color"
+    Camera {
+      translation 0.06 0 0
+      children [
+        Pose {
+          translation 0 0 0
+          rotation 0 1 0 1.57
+        }
+      ]
+      width 3280
+      height 2464
+      fieldOfView 1
     }
-    ROS2Publisher {
-      topicName "/TurtleBot3Burger/camera/camera_info"
-    }
-  }
 
     RobotisLds01 {
     }
