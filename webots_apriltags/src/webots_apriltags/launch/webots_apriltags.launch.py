@@ -98,11 +98,6 @@ def generate_launch_description():
         target_driver=turtlebot_driver,
         nodes_to_start= ros_control_spawners
     )
-    
-    rviz_config_dir = os.path.join(get_package_share_directory('webots_apriltags'),
-                                   'rviz', 'turtlebot3_apriltags.rviz')
-
-
 
     return LaunchDescription([
         DeclareLaunchArgument(
@@ -133,11 +128,6 @@ def generate_launch_description():
                 ],
             )
         ),
-        Node(
-            package='rviz2',
-            executable='rviz2',
-            name='rviz2',
-            arguments=['-d', rviz_config_dir],
-            parameters=[{'use_sim_time': use_sim_time}],
-            output='screen'),
+
+        # RViz node removed
     ])
