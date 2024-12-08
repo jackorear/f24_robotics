@@ -32,6 +32,22 @@ TurtleBot3Burger {
     InertialUnit {
       name "inertial_unit"
     }
+<<<<<<< HEAD
+=======
+    Camera {
+      translation 0.06 0 0
+      children [
+        Pose {
+          translation 0 0 0
+          rotation 0 1 0 1.57
+        }
+      ]
+      width 3280
+      height 2464
+      fieldOfView 1
+    }
+
+>>>>>>> parent of 8d7be9a (Update turtlebot3_apriltags.wbt)
     RobotisLds01 {
     }
   ]
