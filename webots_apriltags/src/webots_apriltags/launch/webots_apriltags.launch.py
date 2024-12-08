@@ -98,8 +98,7 @@ def generate_launch_description():
         target_driver=turtlebot_driver,
         nodes_to_start= ros_control_spawners
     )
-    
-    
+
     return LaunchDescription([
         DeclareLaunchArgument(
             'world',
@@ -128,5 +127,7 @@ def generate_launch_description():
                     launch.actions.EmitEvent(event=launch.events.Shutdown())
                 ],
             )
-        )
+        ),
+
+        # RViz node removed
     ])
