@@ -30,7 +30,7 @@
         </plugin>
     </webots>
 
-    <ros2_control name="WebotsControl1" type="system">
+    <ros2_control name="WebotsControl" type="system">
         <hardware>
             <plugin>webots_ros2_control::Ros2ControlSystem</plugin>
         </hardware>
