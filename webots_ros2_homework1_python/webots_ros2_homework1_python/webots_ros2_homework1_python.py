@@ -14,7 +14,7 @@ import random
 
 LINEAR_VEL = 0.15
 ANGULAR_VEL = 1.0
-STOP_DISTANCE = 0.4
+STOP_DISTANCE = 0.5
 LIDAR_ERROR = 0.05
 WALL_DISTANCE = 0.35
 LIDAR_AVOID_DISTANCE = .7
@@ -48,7 +48,7 @@ class RandomWalk(Node):
         self.odom_data = 0
         self.pose_saved = ''
         self.cmd = Twist()
-        self.timer = self.create_timer(0.25, self.timer_callback)
+        self.timer = self.create_timer(0.5, self.timer_callback)
         self.current_position = None
         self.orientation = 0.0
         self.start_x = 0.0
