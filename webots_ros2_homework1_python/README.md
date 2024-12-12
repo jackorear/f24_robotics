@@ -1,8 +1,5 @@
 # Running Ros2 Controller
 
-
-### TO INSTALL PACKAGE FOR ASSIGNMENT 
-
 1. Open a new terminal and source global ROS environment variables
 <pre>
 source /opt/ros/humble/setup.bash
