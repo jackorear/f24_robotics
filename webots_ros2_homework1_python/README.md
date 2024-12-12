@@ -1,5 +1,7 @@
 # Running Ros2 Controller
 
+To be done after launching webots_apriltags package.
+
 1. Open a new terminal and source global ROS environment variables
 <pre>
 source /opt/ros/humble/setup.bash
