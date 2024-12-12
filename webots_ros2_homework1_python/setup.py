@@ -4,7 +4,7 @@ package_name = 'webots_ros2_homework1_python'
 
 data_files = []
 data_files.append(('share/ament_index/resource_index/packages', ['resource/' + package_name]))
-data_files.append(('share/' + package_name + '/launch', ['launch/controller_launch']))
+data_files.append(('share/' + package_name + '/launch', ['launch/controller_launch.py']))
 
 data_files.append(('share/' + package_name + '/worlds', [
     'worlds/f23_robotics_1.wbt', 
