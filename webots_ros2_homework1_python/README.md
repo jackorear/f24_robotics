@@ -7,7 +7,7 @@ source /opt/ros/humble/setup.bash
 
 2. Navigate to the directory webots_ros2_homework1_python
 <pre>
-cd /f24_robotics/webots_ros2_homework1_python
+cd .../f24_robotics/webots_ros2_homework1_python
 </pre>
 
 3. Build and source the controller package
